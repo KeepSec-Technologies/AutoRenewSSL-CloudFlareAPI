@@ -12,18 +12,18 @@ That's it!
 
 ### ***What's next:***
 
-**1)** Install the AutoRenewSSL-CloudFlareAP.sh file:
+**1)** Install the AutoRenewSSL-CloudFlareAPI.sh file:
 ```bash
 wget https://raw.githubusercontent.com/KeepSec-Technologies/AutoRenewSSL-CloudFlareAPI/main/AutoRenewSSL-CloudFlareAPI.sh
 ```
 
 **3)** Make it executable:
 ```bash
-chmod +x AutoRenewSSL-CloudFlareAP.sh
+chmod +x AutoRenewSSL-CloudFlareAPI.sh
 ```
 **3)** Then run it: 
 ```bash
-./AutoRenewSSL-CloudFlareAP.sh
+./AutoRenewSSL-CloudFlareAPI.sh
 ```
 
 **3)** Answer the questions like the image below:
