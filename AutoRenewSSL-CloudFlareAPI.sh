@@ -94,7 +94,7 @@ dns_cloudflare_api_token = ${token}
 EOT
 chmod 600 /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini &> /dev/null
 
-croncmd="root /usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d *.${domain} > /var/log/certbot-cloudflare-api.log"
+croncmd="root /usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d *.${domain} >> /var/log/certbot-cloudflare-api.log"
 cronjob="0 0 2 * * $croncmd"
 
 printf "$cronjob\n" > /etc/cron.d/$domain-wild-SSL
