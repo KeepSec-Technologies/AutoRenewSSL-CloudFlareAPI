@@ -33,7 +33,7 @@ chmod +x AutoRenewSSL-CloudFlareAPI.sh
 
 Notice how you can't use IIS or an other web server other than nginx and apache.
 
-**Likea as it says in the script if you don't know what a CloudFlare API token is go to https://developers.cloudflare.com/fundamentals/api/get-started/create-token**
+**Like as it says in the script if you don't know what a CloudFlare API token is go to https://developers.cloudflare.com/fundamentals/api/get-started/create-token**
 
 The cronjob is in **/etc/cron.d/[YOUR-DOMAIN]-wild-SSL** 
 The cronjob logs is in **/var/log/certbot-cloudflare-api.log**
@@ -45,6 +45,8 @@ Note: the cronjob runs every 2 month to make sure the certificate renew
 If you want to uninstall it do:
 ```bash
 rm -f /etc/cron.d/[YOUR-DOMAIN]-wild-SSL
+rm -fr /etc/letsencrypt/.certbot
+rm -fr /opt/certbot
 ```
 
 Feel free to modify the code if there's something that you want to change.
