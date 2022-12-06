@@ -45,7 +45,7 @@ printf "${PRPL}\nInstalling utilities ➜ ${NC}"
 #checks package manager and then install all the necessary utilities with your right package manager
 if [ -n "$(command -v apt-get)" ]; then
   add-apt-repository ppa:certbot/certbot &> /dev/null
-  apt-get -y install pip python3 &> /dev/null
+  apt-get -y install pip python3.9 &> /dev/null
   apt remove -y certbot &> /dev/null
   snap remove certbot &> /dev/null
   python3 -m venv /opt/certbot/ &> /dev/null
@@ -57,7 +57,7 @@ if [ -n "$(command -v apt-get)" ]; then
   ln -s /opt/certbot/bin/certbot /usr/bin/certbot &> /dev/null
 elif [ -n "$(command -v yum)" ]; then
   yum -y install epel-release &> /dev/null
-  yum -y install python3 &> /dev/null
+  yum -y install python39 &> /dev/null
   yum -y remove certbot &> /dev/null
   snap remove certbot &> /dev/null
   python3 -m venv /opt/certbot/ &> /dev/null
@@ -129,14 +129,16 @@ sleep 0.5
 #stores api token to auto renew for future occasions
 mkdir /etc/letsencrypt/.certbot/ &> /dev/null
 mkdir /etc/letsencrypt/.certbot/.secret/ &> /dev/null
-tee -a /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini > /dev/null <<EOT
+tee /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini > /dev/null <<EOT
 # Cloudflare API token used by Certbot for all domains on mydomain account
 dns_cloudflare_api_token = ${token}
 EOT
 chmod 600 /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini &> /dev/null
 
 #makes cronjob to execute certbot every 2 month (lets encrypt needs to be renewed every 3 months), also outputs execution in /var/log/certbot-cloudflare-api.log when it runs
-croncmd1="root /usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d *.${domain} --force-renewal >> /var/log/certbot-cloudflare-api.log"
+dqt='"'
+sqt="'"
+croncmd1="root /bin/bash -c ${dqt}U | /usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d ${sqt}*.${domain}${sqt} --non-interactive --force-renewal >> /var/log/certbot-cloudflare-api.log${dqt}"
 cronjob1="0 0 2 * * $croncmd1"
 #also restart your web server when the certbot cronjob executes
 croncmd2="root /usr/bin/bash $restartcmd"
