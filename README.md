@@ -1,12 +1,12 @@
 # AutoRenewSSL-CloudFlareAPI
-Auto renew Let's Encrypt wildcard certificates through CloudFlare API
+Auto renew Let's Encrypt wildcard SSL certificates through CloudFlare API
 
 
 ### ***Prerequisites:***
 
 **1)** Being logged in as root 
 
-**2)** Having a running nginx or apache webserver
+**2)** Having a running nginx or apache web server
 
 That's it!
 
@@ -31,7 +31,7 @@ chmod +x AutoRenewSSL-CloudFlareAPI.sh
 ![image](https://user-images.githubusercontent.com/108779415/200984074-e85b127e-3740-4d88-a5a0-2eab62b9a895.png)
 
 
-Notice how you can't use IIS or an other web server other than nginx and apache.
+Notice how you can't use IIS or any web server other than nginx and apache.
 
 **Like as it says in the script if you don't know what a CloudFlare API token is go to https://developers.cloudflare.com/fundamentals/api/get-started/create-token**
 
