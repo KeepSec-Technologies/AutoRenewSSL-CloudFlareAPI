@@ -104,7 +104,7 @@ if [[ "${websrv}" = "apache" ]]; then
 elif [[ "${websrv}" = "nginx" ]]; then
     websrvDef="nginx"
       if [ -n "$(command -v apt-get)" ]; then
-        restartcmd="/etc/init.d/$websrvDef restart"
+        restartcmd="bash /etc/init.d/$websrvDef restart"
       elif [ -n "$(command -v yum)" ]; then
         restartcmd="systemctl restart $websrvDef"
       fi
@@ -141,7 +141,7 @@ sqt="'"
 croncmd1="root /bin/bash -c ${dqt}U | /usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d ${sqt}*.${domain}${sqt} --non-interactive --force-renewal >> /var/log/certbot-cloudflare-api.log${dqt}"
 cronjob1="0 0 2 * * $croncmd1"
 #also restart your web server when the certbot cronjob executes
-croncmd2="root /usr/bin/bash $restartcmd"
+croncmd2="root /usr/bin/$restartcmd"
 cronjob2="0 0 2 * * $croncmd2"
 
 #puts the cronjob in /etc/cron.d/
