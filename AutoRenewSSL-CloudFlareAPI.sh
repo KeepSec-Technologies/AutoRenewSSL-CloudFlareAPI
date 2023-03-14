@@ -117,7 +117,7 @@ echo ""
 sleep 0.5
 #asks for CloudFlare API Token
 read -p "What is your ${YEL}CloudFlare API Token${NC} : " token
-echo -e "\n(If you don't know what that is go to ${GRN}https://developers.cloudflare.com/fundamentals/api/get-started/create-token)${NC}"
+echo -e "\n(If you don't know what that is go to ${GRN}https://developers.cloudflare.com/fundamentals/api/get-started/create-token${NC})"
 sleep 1.5
 echo ""
 echo -e "Starting Certbot...\n"
