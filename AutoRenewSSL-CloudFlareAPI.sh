@@ -123,9 +123,6 @@ echo ""
 echo -e "Starting Certbot...\n"
 sleep 0.5
 
-#execute certbot command
-certbot certonly --agree-tos --email $email --$websrv --preferred-challenges=dns -d -d ${sqt}*.${domain}${sqt} --server https://acme-v02.api.letsencrypt.org/directory --force-renewal
-
 #stores api token to auto renew for future occasions
 mkdir /etc/letsencrypt/.certbot/ &> /dev/null
 mkdir /etc/letsencrypt/.certbot/.secret/ &> /dev/null
@@ -134,6 +131,9 @@ tee /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini > /dev/null <<EOT
 dns_cloudflare_api_token = ${token}
 EOT
 chmod 600 /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini &> /dev/null
+
+#execute certbot command
+(certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d ${sqt}*.${domain}${sqt} --non-interactive --force-renewal) >> /var/log/certbot-cloudflare-api.log
 
 #makes cronjob to execute certbot every 2 month (lets encrypt needs to be renewed every 3 months), also outputs execution in /var/log/certbot-cloudflare-api.log when it runs
 dqt='"'
