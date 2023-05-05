@@ -123,8 +123,8 @@ echo ""
 echo -e "Starting Certbot...\n"
 sleep 0.5
 
-#execute certbot command
-(certbot certonly --agree-tos --email $email --$websrv --preferred-challenges=dns -d "*.$domain" --server https://acme-v02.api.letsencrypt.org/directory --force-renewal) >> /var/log/certbot-cloudflare-api.log
+#identify to certbot
+(certbot certificates --agree-tos --email $email --non-interactive) &> /dev/null
 
 #stores api token to auto renew for future occasions
 mkdir /etc/letsencrypt/.certbot/ &> /dev/null
@@ -144,10 +144,13 @@ cronjob1="0 0 2 * * $croncmd1"
 croncmd2="root /usr/bin/bash $restartcmd"
 cronjob2="0 0 2 * * $croncmd2"
 
+#execute the first renewal
+certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d "*.${domain}" --non-interactive --force-renewal >> /var/log/certbot-cloudflare-api.log
+
 #puts the cronjob in /etc/cron.d/
 printf "$cronjob1\n$cronjob2\n" > /etc/cron.d/$domain-wild-SSL
 
 #bye bye message :)
-printf "${GRN}We're done!\n\n${NC}"
+printf "${GRN}\nWe're done!\n\n${NC}"
 
 exit
