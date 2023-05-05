@@ -5,8 +5,6 @@ NC=$'\033[0m' # No Color
 PRPL=$'\033[1;35m' # Purple
 GRN=$'\e[1;32m' # Green
 BLUE=$'\e[3;49;34m' # Blue
-dqt='"'
-sqt="'"
 
 #script logo with copyrights
 printf "${BLUE}\n"
@@ -106,7 +104,7 @@ if [[ "${websrv}" = "apache" ]]; then
 elif [[ "${websrv}" = "nginx" ]]; then
     websrvDef="nginx"
       if [ -n "$(command -v apt-get)" ]; then
-        restartcmd="bash /etc/init.d/$websrvDef restart"
+        restartcmd="/etc/init.d/$websrvDef restart"
       elif [ -n "$(command -v yum)" ]; then
         restartcmd="systemctl restart $websrvDef"
       fi
@@ -119,11 +117,14 @@ echo ""
 sleep 0.5
 #asks for CloudFlare API Token
 read -p "What is your ${YEL}CloudFlare API Token${NC} : " token
-echo -e "\n(If you don't know what that is go to ${GRN}https://developers.cloudflare.com/fundamentals/api/get-started/create-token${NC})"
+echo -e "\n(If you don't know what that is go to ${GRN}https://developers.cloudflare.com/fundamentals/api/get-started/create-token)${NC}"
 sleep 1.5
 echo ""
 echo -e "Starting Certbot...\n"
 sleep 0.5
+
+#execute certbot command
+(certbot certonly --agree-tos --email $email --$websrv --preferred-challenges=dns -d "*.$domain" --server https://acme-v02.api.letsencrypt.org/directory --force-renewal) >> /var/log/certbot-cloudflare-api.log
 
 #stores api token to auto renew for future occasions
 mkdir /etc/letsencrypt/.certbot/ &> /dev/null
@@ -134,14 +135,13 @@ dns_cloudflare_api_token = ${token}
 EOT
 chmod 600 /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini &> /dev/null
 
-#execute certbot command
-(certbot certonly --agree-tos --email $email --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d ${sqt}*.${domain}${sqt} --non-interactive --force-renewal) >> /var/log/certbot-cloudflare-api.log
-
 #makes cronjob to execute certbot every 2 month (lets encrypt needs to be renewed every 3 months), also outputs execution in /var/log/certbot-cloudflare-api.log when it runs
+dqt='"'
+sqt="'"
 croncmd1="root /bin/bash -c ${dqt}U | /usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d ${sqt}*.${domain}${sqt} --non-interactive --force-renewal >> /var/log/certbot-cloudflare-api.log${dqt}"
 cronjob1="0 0 2 * * $croncmd1"
 #also restart your web server when the certbot cronjob executes
-croncmd2="root /usr/bin/$restartcmd"
+croncmd2="root /usr/bin/bash $restartcmd"
 cronjob2="0 0 2 * * $croncmd2"
 
 #puts the cronjob in /etc/cron.d/
