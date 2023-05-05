@@ -124,7 +124,7 @@ echo -e "Starting Certbot...\n"
 sleep 0.5
 
 #execute certbot command
-(certbot certonly --agree-tos --email $email --$websrv --preferred-challenges=dns -d *.$domain --server https://acme-v02.api.letsencrypt.org/directory --force-renewal) &> /dev/null
+certbot certonly --agree-tos --email $email --$websrv --preferred-challenges=dns -d -d ${sqt}*.${domain}${sqt} --server https://acme-v02.api.letsencrypt.org/directory --force-renewal
 
 #stores api token to auto renew for future occasions
 mkdir /etc/letsencrypt/.certbot/ &> /dev/null
