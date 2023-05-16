@@ -146,6 +146,7 @@ cronjob2="0 0 2 * * $croncmd2"
 
 #execute the first renewal
 certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d "*.${domain}" --non-interactive --force-renewal >> /var/log/certbot-cloudflare-api.log
+$restartcmd
 
 #puts the cronjob in /etc/cron.d/
 printf "$cronjob1\n$cronjob2\n" > /etc/cron.d/$domain-wild-SSL
