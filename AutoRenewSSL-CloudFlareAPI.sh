@@ -138,11 +138,8 @@ cronjob1="0 0 2 * * $croncmd1"
 croncmd2="root /usr/bin/bash $restartcmd"
 cronjob2="0 0 2 * * $croncmd2"
 
-#identify to certbot
-certbot certificates --agree-tos --email $email --non-interactive >> /var/log/certbot-cloudflare-api.log
-
 #execute the first renewal
-certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d "*.${domain}" --non-interactive --force-renewal >> /var/log/certbot-cloudflare-api.log
+certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d "*.${domain}" --non-interactive --agree-tos --email ${email} --force-renewal >> /var/log/certbot-cloudflare-api.log
 $restartcmd
 
 #puts the cronjob in /etc/cron.d/
