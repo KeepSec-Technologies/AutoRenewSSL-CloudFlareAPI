@@ -134,16 +134,23 @@ dqt='"'
 sqt="'"
 croncmd1="root /bin/bash -c ${dqt}/usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d ${sqt}*.${domain}${sqt} --non-interactive --force-renewal >> /var/log/certbot-cloudflare-api.log${dqt}"
 cronjob1="0 0 1 * * $croncmd1"
-#also restart your web server when the certbot cronjob executes
-croncmd2="root /usr/bin/bash -c ${dqt}$restartcmd${dqt}"
+
+croncmd2="root /usr/bin/bash -c ${dqt}rm -fr /etc/letsencrypt/live/${domain}/${dqt}"
 cronjob2="0 0 1 * * $croncmd2"
+
+croncmd3="root /usr/bin/bash -c ${dqt}mv /etc/letsencrypt/live/${domain}-*/ /etc/letsencrypt/live/${domain}/${dqt}"
+cronjob3="0 0 1 * * $croncmd3"
+
+#also restart your web server when the certbot cronjob executes
+croncmd4="root /usr/bin/bash -c ${dqt}$restartcmd${dqt}"
+cronjob4="0 0 1 * * $croncmd4"
 
 #execute the first renewal
 certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d "*.${domain}" --non-interactive --agree-tos --email ${email} --force-renewal >> /var/log/certbot-cloudflare-api.log
 $restartcmd
 
 #puts the cronjob in /etc/cron.d/
-printf "$cronjob1\n$cronjob2\n\n" > /etc/cron.d/$domain-wild-SSL
+printf "$cronjob1\n$cronjob2\n$cronjob3\n$cronjob4\n\n" > /etc/cron.d/$domain-wild-SSL
 
 #bye bye message :)
 printf "${GRN}\nWe're done!\n\n${NC}"
