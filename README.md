@@ -38,7 +38,7 @@ Notice how you can't use IIS or any web server other than nginx and apache.
 The cronjob is in **/etc/cron.d/[YOUR-DOMAIN]-wild-SSL** 
 The cronjob logs is in **/var/log/certbot-cloudflare-api.log**
 
-Note: the cronjob runs every 1 month to make sure the certificate renew
+Note: the cronjob runs every week to make sure the certificate renew
 
 *And we're done!*
 
