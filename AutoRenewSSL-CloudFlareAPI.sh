@@ -140,7 +140,7 @@ certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-c
 $restartcmd
 
 #puts the cronjob in /etc/cron.d/
-printf "$cronjob1\n$cronjob2\n\n" > /etc/cron.d/$domain-wild-SSL
+printf "$cronjob1\n\n" > /etc/cron.d/$domain-wild-SSL
 
 #bye bye message :)
 printf "${GRN}\nWe're done!\n\n${NC}"
