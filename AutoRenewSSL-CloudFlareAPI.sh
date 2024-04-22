@@ -129,30 +129,68 @@ dns_cloudflare_api_token = ${token}
 EOT
 chmod 600 /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini &> /dev/null
 
-#put rename script in /etc/letsencrypt/.certbot/rename-LE-dir.sh
-cat >"/etc/letsencrypt/.certbot/rename-LE-dir.sh" <<EOF
+#get manage script and put it in /etc/letsencrypt/.certbot/manage_wildcard_cert.sh
+cat >"/etc/letsencrypt/.certbot/manage_wildcard_cert.sh" <<EOF
 #!/bin/bash
 
-# Define the base directory
-base_dir="/etc/letsencrypt/live"
+# Check if domain input was provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 [domain-prefix]"
+    echo "Example: $0 wild.example.org"
+    exit 1
+fi
 
-# List, sort, and get the highest numbered directory
-highest_dir=$(ls -dv ${base_dir}/${1}-* 2>/dev/null | tail -n 1)
+# Input domain prefix
+INPUT=$1
+CERTBOT="/usr/bin/certbot"
+SERVER_URL="https://acme-v02.api.letsencrypt.org/directory"
+DNS_PLUGIN="--dns-cloudflare"
+CREDENTIALS_PATH="/etc/letsencrypt/.certbot/.secret/cloudflare.$INPUT.ini"
+DOMAIN="*.$INPUT"
+CERT_NAME="$INPUT"
 
-# Check if the highest numbered directory exists
-if [ -n "$highest_dir" ]; then
-    # Rename the highest numbered directory
-    mv "$highest_dir" "${base_dir}/${1}"
-    echo "Renamed $highest_dir to ${base_dir}/vpsmini.keepsec.cloud"
+# Function to delete old numbered certificates
+function cleanup_numbered_certs() {
+    echo "Checking for and cleaning up numbered certificates..."
+    for cert in /etc/letsencrypt/live/${CERT_NAME}-*; do
+        if [ -d "$cert" ]; then
+            numbered_cert_name=$(basename "$cert")
+            echo "Deleting old numbered certificate: $numbered_cert_name"
+            $CERTBOT delete --cert-name "$numbered_cert_name" --non-interactive
+        fi
+    done
+    rm -rf /etc/letsencrypt/live/$CERT_NAME*
+    rm -rf /etc/letsencrypt/archive/$CERT_NAME*
+    rm -rf /etc/letsencrypt/renewal/$CERT_NAME*
+}
+
+# Clean up any existing numbered certificates first
+cleanup_numbered_certs
+
+# Renew the wildcard certificate
+echo "Renewing wildcard certificate for $DOMAIN"
+$CERTBOT certonly \
+    --server $SERVER_URL \
+    $DNS_PLUGIN \
+    --dns-cloudflare-credentials $CREDENTIALS_PATH \
+    --preferred-challenges dns \
+    -d $DOMAIN \
+    --cert-name $CERT_NAME \
+    --non-interactive \
+    --force-renewal
+
+# Final status check
+if [ $? -eq 0 ]; then
+    echo "Certificate renewal and Nginx reload completed successfully for $DOMAIN"
 else
-    echo "No directories found to rename."
+    echo "An issue occurred during the renewal or Nginx reload process."
 fi
 EOF
 
 #makes cronjob to execute certbot every week (lets encrypt needs to be renewed every 3 months), also outputs execution in /var/log/certbot-cloudflare-api.log when it runs
 dqt='"'
 sqt="'"
-croncmd1="root /bin/bash -c ${dqt}/usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d ${sqt}*.${domain}${sqt} --cert-name "${domain}"  --non-interactive --force-renewal >> /var/log/certbot-cloudflare-api.log${dqt} && bash /etc/letsencrypt/.certbot/rename-LE-dir.sh ${domain} && systemctl restart nginx"
+croncmd1="root /bin/bash -c ${dqt}bash /root/manage_wildcard_cert.sh ${sqt}${domain}${sqt} >> /var/log/certbot-cloudflare-api.log && $restartcmd"
 cronjob1="0 0 * * 0 $croncmd1"
 
 #execute the first renewal
