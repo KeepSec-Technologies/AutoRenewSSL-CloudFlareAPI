@@ -4,7 +4,7 @@ Auto renew Let's Encrypt wildcard SSL certificates through CloudFlare API
 
 ### ***Prerequisites:***
 
-**1)** Being logged in as root 
+**1)** Being logged in as root or sudo
 
 **2)** Having a running nginx or apache web server
 
@@ -12,37 +12,34 @@ That's it!
 
 ### ***What's next:***
 
-**1)** Install the AutoRenewSSL-CloudFlareAPI.sh file:
+**1)** Get the AutoRenewSSL-CloudFlareAPI.sh script:
 ```bash
-wget https://raw.githubusercontent.com/KeepSec-Technologies/AutoRenewSSL-CloudFlareAPI/main/AutoRenewSSL-CloudFlareAPI.sh
+curl -O https://raw.githubusercontent.com/KeepSec-Technologies/AutoRenewSSL-CloudFlareAPI/main/AutoRenewSSL-CloudFlareAPI.sh
 ```
 
 **3)** Make it executable:
 ```bash
 chmod +x AutoRenewSSL-CloudFlareAPI.sh
 ```
-**3)** Then run it: 
+**3)** Then run it as sudo or root: 
 ```bash
-./AutoRenewSSL-CloudFlareAPI.sh
+sudo ./AutoRenewSSL-CloudFlareAPI.sh
 ```
 
 **3)** Answer the questions like the image below:
 
-![image](https://user-images.githubusercontent.com/108779415/200984074-e85b127e-3740-4d88-a5a0-2eab62b9a895.png)
-
-
-Notice how you can't use IIS or any web server other than nginx and apache.
+![image](https://github.com/user-attachments/assets/bb88800a-960e-446c-b854-bb9672223a3a)
 
 **Like as it says in the script if you don't know what a CloudFlare API token is go to https://developers.cloudflare.com/fundamentals/api/get-started/create-token**
 
-The cronjob is in **/etc/cron.d/[YOUR-DOMAIN]-wild-SSL** 
-The cronjob logs is in **/var/log/certbot-cloudflare-api.log**
+The cronjob is located at **/etc/cron.d/[YOUR-DOMAIN]-wild-SSL** 
+The cronjob logs is located at **/var/log/certbot-cloudflare-api.log**
 
-Note: the cronjob runs every week to make sure the certificate renew
+Note: the cronjob runs every day at 12AM to make sure the certificate renews, only renews when it expires in 30 days.
 
 *And we're done!*
 
-If you want to uninstall it do:
+If you want to uninstall everything it does, do:
 ```bash
 rm -f /etc/cron.d/[YOUR-DOMAIN]-wild-SSL
 rm -fr /etc/letsencrypt/.certbot
