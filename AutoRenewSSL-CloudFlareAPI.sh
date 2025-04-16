@@ -41,31 +41,45 @@ SPIN_PID=$!
 disown
 printf "${PRPL}\nInstalling utilities ➜ ${NC}"
 
-#checks package manager and then install all the necessary utilities with your right package manager
-if [ -n "$(command -v apt-get)" ]; then
-  add-apt-repository ppa:certbot/certbot &>/dev/null
-  apt-get -y install pip python3.9 &>/dev/null
-  apt remove -y certbot &>/dev/null
-  snap remove certbot &>/dev/null
-  python3 -m venv /opt/certbot/ &>/dev/null
-  yes | /opt/certbot/bin/pip install --upgrade pip &>/dev/null
-  yes | /opt/certbot/bin/pip3 install certbot &>/dev/null
-  yes | /opt/certbot/bin/pip3 install certbot-nginx &>/dev/null
-  yes | /opt/certbot/bin/pip3 install certbot-apache &>/dev/null
-  yes | /opt/certbot/bin/pip3 install certbot-dns-cloudflare &>/dev/null
-  ln -s /opt/certbot/bin/certbot /usr/bin/certbot &>/dev/null
-elif [ -n "$(command -v dnf)" ]; then
-  dnf -y install epel-release &>/dev/null
-  dnf -y install python39 &>/dev/null
-  dnf -y remove certbot &>/dev/null
-  snap remove certbot &>/dev/null
-  python3 -m venv /opt/certbot/ &>/dev/null
-  yes | /opt/certbot/bin/pip install --upgrade pip &>/dev/null
-  yes | /opt/certbot/bin/pip3 install certbot &>/dev/null
-  yes | /opt/certbot/bin/pip3 install certbot-nginx &>/dev/null
-  yes | /opt/certbot/bin/pip3 install certbot-apache &>/dev/null
-  yes | /opt/certbot/bin/pip3 install certbot-dns-cloudflare &>/dev/null
-  ln -s /opt/certbot/bin/certbot /usr/bin/certbot &>/dev/null
+if ! command -v certbot &>/dev/null; then
+  #checks package manager and then install all the necessary utilities with your right package manager
+  if [ -n "$(command -v apt-get)" ]; then
+    add-apt-repository ppa:certbot/certbot &>/dev/null
+    apt-get -y install pip python3.9 &>/dev/null
+    apt remove -y certbot &>/dev/null
+    snap remove certbot &>/dev/null
+    python3 -m venv /opt/certbot/ &>/dev/null
+    yes | /opt/certbot/bin/pip install --upgrade pip &>/dev/null
+    yes | /opt/certbot/bin/pip3 install certbot &>/dev/null
+    yes | /opt/certbot/bin/pip3 install certbot-nginx &>/dev/null
+    yes | /opt/certbot/bin/pip3 install certbot-apache &>/dev/null
+    yes | /opt/certbot/bin/pip3 install certbot-dns-cloudflare &>/dev/null
+    ln -s /opt/certbot/bin/certbot /usr/bin/certbot &>/dev/null
+    # Check for successful package installation
+    if ! command -v certbot &>/dev/null; then
+      printf "${RED}\nCertbot installation failed! Please check the logs.${NC}\n"
+      sleep 0.5
+      exit 1
+    fi
+  elif [ -n "$(command -v dnf)" ]; then
+    dnf -y install epel-release &>/dev/null
+    dnf -y install python39 &>/dev/null
+    dnf -y remove certbot &>/dev/null
+    snap remove certbot &>/dev/null
+    python3 -m venv /opt/certbot/ &>/dev/null
+    yes | /opt/certbot/bin/pip install --upgrade pip &>/dev/null
+    yes | /opt/certbot/bin/pip3 install certbot &>/dev/null
+    yes | /opt/certbot/bin/pip3 install certbot-nginx &>/dev/null
+    yes | /opt/certbot/bin/pip3 install certbot-apache &>/dev/null
+    yes | /opt/certbot/bin/pip3 install certbot-dns-cloudflare &>/dev/null
+    ln -s /opt/certbot/bin/certbot /usr/bin/certbot &>/dev/null
+    # Check for successful package installation
+    if ! command -v certbot &>/dev/null; then
+      printf "${RED}\nCertbot installation failed! Please check the logs.${NC}\n"
+      sleep 0.5
+      exit 1
+    fi
+  fi
 fi
 
 #kills spinning wheel
@@ -73,13 +87,6 @@ kill -9 $SPIN_PID &>/dev/null
 tput cnorm
 echo ""
 echo ""
-
-# Check for successful package installation
-if ! command -v certbot &>/dev/null; then
-  printf "${RED}\nCertbot installation failed! Please check the logs.${NC}\n"
-  sleep 0.5
-  exit 1
-fi
 
 # function to get your domain
 function certbot_domain {
@@ -169,10 +176,10 @@ chmod 600 /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini &>/dev/null
 chown root:root /etc/letsencrypt/.certbot/.secret/cloudflare.$domain.ini &>/dev/null
 
 # makes cronjob to execute certbot every day
-cronjob="0 0 * * root /bin/bash -c '/usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d \"*.${domain}\" --non-interactive --deploy-hook \"$reloadcmd\" >> /var/log/certbot-cloudflare-api.log 2>&1'"
+cronjob="0 0 * * root /bin/bash -c '/usr/bin/certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d \"${domain}\" -d \"*.${domain}\" --non-interactive --deploy-hook \"$reloadcmd\" >> /var/log/certbot-cloudflare-api.log 2>&1'"
 
 # execute the first renewal
-certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d "*.${domain}" --cert-name "${domain}" --non-interactive --agree-tos --email ${email} --force-renewal > /var/log/certbot-cloudflare-api.log
+certbot certonly --server https://acme-v02.api.letsencrypt.org/directory --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/.certbot/.secret/cloudflare.${domain}.ini --preferred-challenges dns -d "${domain}" -d "*.${domain}" --cert-name "${domain}" --non-interactive --agree-tos --email ${email} --force-renewal > /var/log/certbot-cloudflare-api.log
 $reloadcmd
 
 # puts the cronjob in /etc/cron.d/
